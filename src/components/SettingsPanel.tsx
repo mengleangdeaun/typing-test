@@ -10,6 +10,7 @@ import {
 } from './ui/select'
 import type { TestMode, TimerDuration, Difficulty } from '../types'
 import { Label } from './ui/label'
+import PracticePicker from './modes/PracticePicker'
 
 interface SettingsPanelProps {
   isOpen: boolean
@@ -18,8 +19,8 @@ interface SettingsPanelProps {
   onModeChange: (mode: TestMode) => void
   difficulty: Difficulty
   onDifficultyChange: (difficulty: Difficulty) => void
-  language: 'english' | 'khmer'
-  onLanguageChange: (language: 'english' | 'khmer') => void
+  language: 'english' | 'khmer' | 'mixed'
+  onLanguageChange: (language: 'english' | 'khmer' | 'mixed') => void
   timerDuration: TimerDuration
   onTimerDurationChange: (duration: TimerDuration) => void
   wordCount: 10 | 25 | 50 | 100
@@ -30,6 +31,11 @@ interface SettingsPanelProps {
   onSoundToggle: (enabled: boolean) => void
   onReset: () => void
   status: 'idle' | 'running' | 'finished'
+  // Practice mode
+  practiceIndex: number
+  onPracticeIndexChange: (index: number, language: 'english' | 'khmer' | 'mixed') => void
+  practiceTimed: boolean
+  onPracticeTimedChange: (timed: boolean) => void
 }
 
 const SettingsPanel: React.FC<SettingsPanelProps> = ({
@@ -50,14 +56,18 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
   soundEnabled,
   onSoundToggle,
   onReset,
-  status
+  status,
+  practiceIndex,
+  onPracticeIndexChange,
+  practiceTimed,
+  onPracticeTimedChange,
 }) => {
   if (!isOpen) return null
 
   const isDisabled = status === 'running'
 
   return (
-    <Card className="!border-none bg-card  shadow-none animate-in slide-in-from-right-4 duration-300">
+    <Card className=" bg-card shadow-none border">
       <CardContent className="space-y-5">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-muted/20 pb-3">
@@ -77,8 +87,8 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
           {/* Mode Selection */}
           <div className="space-y-1.5">
             <Label className="text-xs uppercase text-muted-foreground/80">Test Mode</Label>
-            <Select 
-              value={mode} 
+            <Select
+              value={mode}
               onValueChange={(v) => onModeChange(v as TestMode)}
               disabled={isDisabled}
             >
@@ -91,6 +101,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                 <SelectItem value="quote">Quote Test</SelectItem>
                 <SelectItem value="zen">Zen Mode</SelectItem>
                 <SelectItem value="custom">Custom Text</SelectItem>
+                <SelectItem value="practice">Practice</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -98,8 +109,8 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
           {/* Difficulty Selection */}
           <div className="space-y-1.5">
             <Label className="text-xs uppercase text-muted-foreground/80">Difficulty Level</Label>
-            <Select 
-              value={difficulty} 
+            <Select
+              value={difficulty}
               onValueChange={(v) => onDifficultyChange(v as Difficulty)}
               disabled={isDisabled}
             >
@@ -118,9 +129,9 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
           {/* Language Selection */}
           <div className="space-y-1.5">
             <Label className="text-xs uppercase text-muted-foreground/80">Language</Label>
-            <Select 
-              value={language} 
-              onValueChange={(v) => onLanguageChange(v as 'english' | 'khmer')}
+            <Select
+              value={language}
+              onValueChange={(v) => onLanguageChange(v as 'english' | 'khmer' | 'mixed')}
               disabled={isDisabled}
             >
               <SelectTrigger className="h-8 w-full text-xs">
@@ -129,16 +140,17 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
               <SelectContent>
                 <SelectItem value="english">English</SelectItem>
                 <SelectItem value="khmer">Khmer</SelectItem>
+                <SelectItem value="mixed">Mixed (Bilingual)</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
-          {/* Timer Duration (only for time mode) */}
+          {/* Timer Duration (time mode) */}
           {mode === 'time' && (
             <div className="space-y-1.5">
               <Label className="text-xs uppercase text-muted-foreground/80">Duration</Label>
-              <Select 
-                value={String(timerDuration)} 
+              <Select
+                value={String(timerDuration)}
                 onValueChange={(v) => onTimerDurationChange(Number(v) as TimerDuration)}
                 disabled={isDisabled}
               >
@@ -158,12 +170,12 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
             </div>
           )}
 
-          {/* Word Count (only for words mode) */}
+          {/* Word Count (words mode) */}
           {mode === 'words' && (
             <div className="space-y-1.5">
               <Label className="text-xs uppercase text-muted-foreground/80">Word Count</Label>
-              <Select 
-                value={String(wordCount)} 
+              <Select
+                value={String(wordCount)}
                 onValueChange={(v) => onWordCountChange(Number(v) as 10 | 25 | 50 | 100)}
                 disabled={isDisabled}
               >
@@ -180,11 +192,59 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
             </div>
           )}
 
+          {/* Practice Mode Options */}
+          {mode === 'practice' && (
+            <>
+              {/* Timer Toggle */}
+              <div className="space-y-1.5">
+                <Label className="text-xs uppercase text-muted-foreground/80">Timer</Label>
+                <Select
+                  value={practiceTimed ? 'on' : 'off'}
+                  onValueChange={(v) => onPracticeTimedChange(v === 'on')}
+                  disabled={isDisabled}
+                >
+                  <SelectTrigger className="h-8 w-full text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="off">Off — finish when done</SelectItem>
+                    <SelectItem value="on">On — countdown</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Duration (only shown when timer is on) */}
+              {practiceTimed && (
+                <div className="space-y-1.5">
+                  <Label className="text-xs uppercase text-muted-foreground/80">Duration</Label>
+                  <Select
+                    value={String(timerDuration)}
+                    onValueChange={(v) => onTimerDurationChange(Number(v) as TimerDuration)}
+                    disabled={isDisabled}
+                  >
+                    <SelectTrigger className="h-8 w-full text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="15">15 Seconds</SelectItem>
+                      <SelectItem value="30">30 Seconds</SelectItem>
+                      <SelectItem value="60">60 Seconds</SelectItem>
+                      <SelectItem value="120">2 Minutes</SelectItem>
+                      <SelectItem value="180">3 Minutes</SelectItem>
+                      <SelectItem value="240">4 Minutes</SelectItem>
+                      <SelectItem value="300">5 Minutes</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            </>
+          )}
+
           {/* Sound Effects Toggle */}
           <div className="space-y-1.5">
             <Label className="text-xs uppercase text-muted-foreground/80">Sound Effects</Label>
-            <Select 
-              value={soundEnabled ? 'on' : 'off'} 
+            <Select
+              value={soundEnabled ? 'on' : 'off'}
               onValueChange={(v) => onSoundToggle(v === 'on')}
             >
               <SelectTrigger className="h-8 w-full text-xs">
@@ -198,7 +258,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
           </div>
         </div>
 
-        {/* Custom Text Input (only for custom mode) */}
+        {/* Custom Text Input */}
         {mode === 'custom' && (
           <div className="space-y-1.5 pt-3 border-t border-muted/20">
             <Label className="text-xs uppercase text-muted-foreground/80">Custom Text</Label>
@@ -216,11 +276,23 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
           </div>
         )}
 
+        {/* Practice Paragraph Picker */}
+        {mode === 'practice' && (
+          <div className="pt-3 border-t border-muted/20">
+            <PracticePicker
+              activeLanguage={language}
+              selectedIndex={practiceIndex}
+              onSelect={onPracticeIndexChange}
+              disabled={isDisabled}
+            />
+          </div>
+        )}
+
         {/* Footer Actions */}
         <div className="flex flex-col gap-2 pt-3 border-t border-muted/20">
-          <Button 
-            size="sm" 
-            variant="outline" 
+          <Button
+            size="sm"
+            variant="outline"
             onClick={onReset}
             className="w-full h-8 text-xs font-medium"
           >

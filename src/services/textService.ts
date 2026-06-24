@@ -37,7 +37,9 @@ const TEXT_BANK: Record<Exclude<Language, 'custom'>, string[]> = {
 
 "Learning a new language opens doors to different cultures and opportunities. It improves cognitive abilities and helps people connect with others from diverse backgrounds.",
 
-"Cybersecurity has become increasingly important as more personal and business activities move online. Protecting sensitive information requires awareness, strong security practices, and modern technologies."
+"Cybersecurity has become increasingly important as more personal and business activities move online. Protecting sensitive information requires awareness, strong security practices, and modern technologies.",
+
+"Customer service is an important part of every successful company. Employees should communicate clearly, solve problems efficiently, and work together as a team. Good communication helps build trust with customers and creates a positive working environment. Every staff member should take responsibility for their tasks, respect company policies, and continuously improve their skills through learning and practice."
   ],
   khmer: [
     "ប្រទេសកម្ពុជាមានប្រវត្តិសាស្ត្រដ៏យូរអង្វែង និងសម្បូរបែបវប្បធម៌។",
@@ -61,13 +63,36 @@ const TEXT_BANK: Record<Exclude<Language, 'custom'>, string[]> = {
 
 "ការអភិវឌ្ឍកម្មវិធីកុំព្យូទ័រតម្រូវឱ្យមានការគិតឡូជីខល និងការដោះស្រាយបញ្ហាប្រកបដោយប្រសិទ្ធភាព។ អ្នកអភិវឌ្ឍន៍ត្រូវរៀនបច្ចេកវិទ្យាថ្មីៗជានិច្ច។",
 
-"បញ្ញាសិប្បនិម្មិតកំពុងក្លាយជាផ្នែកសំខាន់មួយនៃជីវិតប្រចាំថ្ងៃ។ វាត្រូវបានប្រើប្រាស់ក្នុងវិស័យជាច្រើនដើម្បីបង្កើនប្រសិទ្ធភាព និងភាពងាយស្រួល។"
+"បញ្ញាសិប្បនិម្មិតកំពុងក្លាយជាផ្នែកសំខាន់មួយនៃជីវិតប្រចាំថ្ងៃ។ វាត្រូវបានប្រើប្រាស់ក្នុងវិស័យជាច្រើនដើម្បីបង្កើនប្រសិទ្ធភាព និងភាពងាយស្រួល។",
+
+"ការផ្តល់សេវាកម្មល្អគឺជាកត្តាសំខាន់សម្រាប់ភាពជោគជ័យរបស់ក្រុមហ៊ុន។ បុគ្គលិកគួរតែមានការទំនាក់ទំនងល្អ ដោះស្រាយបញ្ហាប្រកបដោយប្រសិទ្ធភាព និងសហការគ្នាជាក្រុម។ ការទទួលខុសត្រូវចំពោះការងារ ការគោរព វិន័យការងារ និងការបន្តអភិវឌ្ឍជំនាញរបស់ខ្លួន នឹងជួយបង្កើនគុណភាពការងារ និងលទ្ធផលរបស់អង្គភាព។"
+  ],
+  mixed: [
+    "Customer service is an important part of every successful company. Employees should communicate clearly, solve problems efficiently, and work together as a team. Good communication helps build trust with customers and creates a positive working environment. Every staff member should take responsibility for their tasks, respect company policies, and continuously improve their skills through learning and practice. ការផ្តល់សេវាកម្មល្អគឺជាកត្តាសំខាន់សម្រាប់ភាពជោគជ័យរបស់ក្រុមហ៊ុន។ បុគ្គលិកគួរតែមានការទំនាក់ទំនងល្អ ដោះស្រាយបញ្ហាប្រកបដោយប្រសិទ្ធភាព និងសហការគ្នាជាក្រុម។ ការទទួលខុសត្រូវចំពោះការងារ ការគោរព វិន័យការងារ និងការបន្តអភិវឌ្ឍជំនាញរបស់ខ្លួន នឹងជួយបង្កើនគុណភាពការងារ និងលទ្ធផលរបស់អង្គភាព។",
+    "Success is rarely achieved overnight. It is the result of consistent effort. ការអប់រំគឺជាគន្លឹះសម្រាប់ការអភិវឌ្ឍន៍បុគ្គល និងសង្គម។ ការសិក្សាជាបន្តបន្ទាប់ជួយឱ្យមនុស្សទទួលបានចំណេះដឹងថ្មី។",
+    "The future belongs to those who continuously learn and adapt. បច្ចេកវិទ្យាបានផ្លាស់ប្តូររបៀបរស់នៅ និងការងាររបស់មនុស្សជាច្រើន។ ការប្រើប្រាស់ឧបករណ៍ឌីជីថលបានធ្វើឱ្យការទំនាក់ទំនងកាន់តែងាយស្រួល។",
+    "Reading books expands knowledge, improves vocabulary, and encourages critical thinking. ការអានសៀវភៅជាប្រចាំអាចជួយពង្រីកចំណេះដឹង និងបង្កើនសមត្ថភាពគិតវិភាគ។",
+    "Effective communication is one of the most important skills in both personal and professional life. ការធ្វើការជាក្រុមជួយឱ្យសមាជិកអាចចែករំលែកចំណេះដឹង និងបទពិសោធន៍។",
+    "Software development requires creativity, logical thinking, and attention to detail. ការអភិវឌ្ឍកម្មវិធីកុំព្យូទ័រតម្រូវឱ្យមានការគិតឡូជីខល និងការដោះស្រាយបញ្ហាប្រកបដោយប្រសិទ្ធភាព។",
+    "Traveling provides opportunities to experience different cultures, meet new people, and gain fresh perspectives. ប្រទេសកម្ពុជាមានធនធានវប្បធម៌ និងប្រវត្តិសាស្ត្រដ៏សម្បូរបែប។"
   ]
 }
 
 export const getRandomText = (lang: Exclude<Language, 'custom'>): string => {
   const texts = TEXT_BANK[lang]
   return texts[Math.floor(Math.random() * texts.length)]
+}
+
+/** Returns all practice paragraphs for the given language. */
+export const getPracticeTexts = (lang: 'english' | 'khmer' | 'mixed'): string[] => {
+  return TEXT_BANK[lang]
+}
+
+/** Returns a single paragraph by index (safely clamped). */
+export const getPracticeText = (lang: 'english' | 'khmer' | 'mixed', index: number): string => {
+  const texts = TEXT_BANK[lang]
+  const clamped = Math.max(0, Math.min(index, texts.length - 1))
+  return texts[clamped]
 }
 
 export const generateZenText = (difficulty: Difficulty): string => {

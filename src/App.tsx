@@ -17,7 +17,7 @@ import { RotateCcw, Settings, Sun, Moon, X } from 'lucide-react'
 
 function App() {
   const [mode, setMode] = useState<TestMode>('time')
-  const [language, setLanguage] = useState<'english' | 'khmer'>('english')
+  const [language, setLanguage] = useState<'english' | 'khmer' | 'mixed'>('english')
   const [difficulty, setDifficulty] = useState<Difficulty>('intermediate')
   const [timerDuration, setTimerDuration] = useState<TimerDuration>(30)
   const [wordCount, setWordCount] = useState<10 | 25 | 50 | 100>(25)
@@ -25,6 +25,8 @@ function App() {
   const [showSettings, setShowSettings] = useState(false)
   const [soundEnabled, setSoundEnabled] = useState(true)
   const [isFocused, setIsFocused] = useState(false)
+  const [practiceIndex, setPracticeIndex] = useState<number>(0)
+  const [practiceTimed, setPracticeTimed] = useState<boolean>(false)
 
   const { theme, setTheme } = useTheme()
   const resultsRef = useRef<HTMLDivElement>(null)
@@ -49,7 +51,9 @@ function App() {
     difficulty,
     timerDuration,
     wordCount,
-    customText
+    customText,
+    practiceIndex,
+    practiceTimed
   })
 
   useEffect(() => {
@@ -118,6 +122,21 @@ function App() {
   const handleModeChange = (newMode: TestMode) => {
     setMode(newMode)
     resetTest()
+  }
+
+  // When language changes in Practice mode, reset to paragraph 0 of the new language
+  const handleLanguageChange = (newLang: 'english' | 'khmer' | 'mixed') => {
+    setLanguage(newLang)
+    if (mode === 'practice') {
+      setPracticeIndex(0)
+    }
+  }
+
+  // When a paragraph is selected, update both index and language, and focus input immediately
+  const handlePracticeIndexChange = (index: number, newLang: 'english' | 'khmer' | 'mixed') => {
+    setLanguage(newLang)
+    setPracticeIndex(index)
+    setTimeout(() => inputRef.current?.focus(), 50)
   }
 
   const progress = targetText.length > 0 
@@ -250,7 +269,7 @@ function App() {
                   <Button 
                     onClick={handleRestart} 
                     variant="default"
-                    className="shadow-sm"
+                    className="px-6 py-6"
                   >
                     <RotateCcw className="h-4 w-4 mr-2" />
                     Restart Test
@@ -275,16 +294,16 @@ function App() {
 
           {/* Settings Sidebar */}
           <div className={cn(
-            "lg:w-80 shrink-0",
-            "fixed lg:sticky inset-y-0 right-0 z-50 lg:z-0",
-            "w-90 lg:w-auto",
+            "lg:w-72 shrink-0",
+            "fixed inset-y-0 right-0 z-50 lg:z-0",
+            "w-80 lg:w-72",
             "bg-background lg:bg-transparent",
             "border-l lg:border-l-0",
-            "transition-transform duration-300 ease-in-out",
-            "lg:transition-none",
+            "transition-transform duration-300 ease-in-out lg:transition-none",
             showSettings ? "translate-x-0" : "translate-x-full lg:translate-x-0",
-            "top-0 lg:top-8",
-            "overflow-y-auto lg:overflow-visible",
+            "top-0 lg:top-0",
+            "overflow-y-auto",
+            "lg:max-h-[calc(100vh-6rem)] lg:sticky lg:self-start",
             "shadow-2xl lg:shadow-none"
           )}>
             {/* Mobile close button */}
@@ -308,7 +327,7 @@ function App() {
                 difficulty={difficulty}
                 onDifficultyChange={setDifficulty}
                 language={language}
-                onLanguageChange={setLanguage}
+                onLanguageChange={handleLanguageChange}
                 timerDuration={timerDuration}
                 onTimerDurationChange={setTimerDuration}
                 wordCount={wordCount}
@@ -319,6 +338,10 @@ function App() {
                 onSoundToggle={setSoundEnabled}
                 onReset={handleRestart}
                 status={status}
+                practiceIndex={practiceIndex}
+                onPracticeIndexChange={handlePracticeIndexChange}
+                practiceTimed={practiceTimed}
+                onPracticeTimedChange={setPracticeTimed}
               />
             </div>
           </div>

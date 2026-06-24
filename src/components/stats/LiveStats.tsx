@@ -1,12 +1,12 @@
 import React from 'react'
-import type { TestStats } from '../../types'
+import type { TestStats, TestMode } from '../../types'
 import { cn, getWpmColor, getAccuracyColor } from '../../lib/utils'
 
 interface LiveStatsProps {
   stats: TestStats | null
   timeLeft?: number
   progress?: number
-  mode: 'time' | 'words' | 'quote' | 'zen' | 'custom'
+  mode: TestMode
   wordCount?: number
 }
 

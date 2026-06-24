@@ -46,7 +46,7 @@ const PWAInstallPrompt: React.FC = () => {
   if (!promptEvent || dismissed) return null
 
   return (
-    <div className="fixed top-4 left-4 right-4 md:left-auto md:left-4 md:w-80 z-[100] animate-in slide-in-from-bottom-4 duration-300">
+    <div className="fixed top-4 left-4 right-4 md:left-auto md:right-4 md:w-80 z-[100] animate-in slide-in-from-top-4 fade-in duration-300 ease-out">
       <div className="bg-card border border-border shadow-xl p-4">
         <div className="flex items-start gap-3">
           <div className="flex-shrink-0 mt-0.5">

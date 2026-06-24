@@ -1,15 +1,17 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import type { TestStatus, TestMode, Difficulty, TimerDuration } from '../types'
 import { calculateStats, saveSession } from '../services/statsService'
-import { getRandomText, generateZenText, getQuoteText } from '../services/textService'
+import { getRandomText, generateZenText, getQuoteText, getPracticeText } from '../services/textService'
 
 interface UseTypingEngineProps {
   mode: TestMode
-  language: 'english' | 'khmer'
+  language: 'english' | 'khmer' | 'mixed'
   difficulty: Difficulty
   timerDuration: TimerDuration
   wordCount?: 10 | 25 | 50 | 100
   customText?: string
+  practiceIndex?: number
+  practiceTimed?: boolean
 }
 
 export const useTypingEngine = ({
@@ -18,7 +20,9 @@ export const useTypingEngine = ({
   difficulty,
   timerDuration,
   wordCount = 25,
-  customText = ''
+  customText = '',
+  practiceIndex = 0,
+  practiceTimed = false
 }: UseTypingEngineProps) => {
   const [status, setStatus] = useState<TestStatus>('idle')
   const [timeLeft, setTimeLeft] = useState<number>(timerDuration)
@@ -36,49 +40,71 @@ export const useTypingEngine = ({
       case 'time':
         text = getRandomText(language)
         break
-      case 'words':
+      case 'words': {
         const words = generateZenText(difficulty).split(' ').slice(0, wordCount)
         text = words.join(' ')
         break
-      case 'quote':
+      }
+      case 'quote': {
         const quote = getQuoteText()
         text = quote.text
         break
+      }
       case 'zen':
         text = generateZenText(difficulty)
         break
       case 'custom':
         text = customText.trim() || 'Please enter custom text to begin'
         break
+      case 'practice':
+        text = getPracticeText(language, practiceIndex)
+        break
       default:
         text = getRandomText(language)
     }
     setTargetText(text)
     return text
-  }, [mode, language, difficulty, wordCount, customText])
+  }, [mode, language, difficulty, wordCount, customText, practiceIndex])
+
+  // Practice mode is untimed unless practiceTimed is true
+  const isUntimed = mode === 'zen' || (mode === 'practice' && !practiceTimed)
 
   // Reset test
   const resetTest = useCallback(() => {
     setStatus('idle')
-    setTimeLeft(mode === 'zen' ? Infinity : timerDuration)
+    setTimeLeft(isUntimed ? Infinity : timerDuration)
     setTypedText('')
     setWpmHistory([])
     setWordIndex(0)
     setWordHistory([])
     setStartTime(0)
     initText()
-  }, [mode, timerDuration, initText])
+  }, [isUntimed, timerDuration, initText])
 
-  // Initialize on mode/language change
+  // General reset: fires when mode or any shared setting changes
+  // (practiceIndex handled separately below)
   useEffect(() => {
     resetTest()
-  }, [mode, language, difficulty, timerDuration, wordCount, customText, resetTest])
+  }, [mode, language, difficulty, timerDuration, wordCount, customText, practiceTimed, resetTest])
 
-  // Timer logic
+  // Practice mode: directly reload text when paragraph index or language changes.
+  // Uses a simple, direct effect to avoid stale-closure issues in the resetTest chain.
+  useEffect(() => {
+    if (mode !== 'practice') return
+    const text = getPracticeText(language, practiceIndex)
+    setTargetText(text)
+    setTypedText('')
+    setStatus('idle')
+    setWpmHistory([])
+    setStartTime(0)
+    setTimeLeft(practiceTimed ? timerDuration : Infinity)
+  }, [mode, language, practiceIndex, practiceTimed, timerDuration])
+
+  // Timer logic — skip countdown for untimed modes
   useEffect(() => {
     let interval: any = null
-    
-    if (status === 'running' && timeLeft > 0 && mode !== 'zen') {
+
+    if (status === 'running' && timeLeft > 0 && !isUntimed) {
       interval = setInterval(() => {
         setTimeLeft((prev) => {
           if (prev <= 1) {
@@ -89,11 +115,11 @@ export const useTypingEngine = ({
         })
       }, 1000)
     }
-    
+
     return () => {
       if (interval) clearInterval(interval)
     }
-  }, [status, timeLeft, mode])
+  }, [status, timeLeft, isUntimed])
 
   // Handle typing
   const handleTyping = useCallback((value: string) => {
@@ -143,7 +169,7 @@ export const useTypingEngine = ({
       if (words.length >= wordCount) {
         setStatus('finished')
       }
-    } else if (mode === 'quote' || mode === 'time' || mode === 'custom') {
+    } else if (mode === 'quote' || mode === 'time' || mode === 'custom' || mode === 'practice') {
       if (value.length >= targetText.length) {
         setStatus('finished')
       }

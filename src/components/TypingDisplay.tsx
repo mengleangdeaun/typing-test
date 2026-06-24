@@ -1,12 +1,13 @@
 import React from 'react'
 import { cn } from '../lib/utils'
 import { Keyboard } from 'lucide-react'
+import type { TestMode } from '../types'
 
 interface TypingDisplayProps {
   targetText: string
   typedText: string
   showCursor?: boolean
-  mode?: 'time' | 'words' | 'quote' | 'zen' | 'custom'
+  mode?: TestMode
   onDisplayClick?: () => void
   isFocused?: boolean
 }
@@ -19,8 +20,21 @@ const TypingDisplay: React.FC<TypingDisplayProps> = ({
   onDisplayClick,
   isFocused = true
 }) => {
-  // Split text into characters for rendering
-  const targetChars = targetText.split('')
+  // Segment targetText by grapheme clusters (user-perceived characters)
+  // This prevents complex Khmer combining characters from rendering brokenly.
+  const segments = React.useMemo(() => {
+    if (!targetText) return []
+    try {
+      const segmenter = new Intl.Segmenter(undefined, { granularity: 'grapheme' })
+      return Array.from(segmenter.segment(targetText))
+    } catch (e) {
+      // Fallback if Intl.Segmenter is not available in the environment
+      return targetText.split('').map((char, index) => ({
+        segment: char,
+        index
+      }))
+    }
+  }, [targetText])
   
   return (
     <div 
@@ -41,22 +55,43 @@ const TypingDisplay: React.FC<TypingDisplayProps> = ({
         "transition-all duration-300",
         !isFocused && "blur-[1.5px] opacity-40"
       )}>
-        {targetChars.map((char, index) => {
-          const isTyped = index < typedText.length
-          const isCurrent = index === typedText.length
+        {segments.map((seg, index) => {
+          const char = seg.segment
+          const startIndex = seg.index
+          const endIndex = startIndex + char.length
+          
+          const isFullyTyped = typedText.length >= endIndex
+          const isCurrent = typedText.length >= startIndex && typedText.length < endIndex
           
           let className = 'transition-colors duration-100'
           
-          if (isTyped) {
-            // Character has been typed
-            if (typedText[index] === char) {
+          // Determine correctness of whatever has been typed for this segment so far
+          let isCorrect = true
+          const typedRangeLength = Math.min(typedText.length, endIndex) - startIndex
+          if (typedRangeLength > 0) {
+            for (let offset = 0; offset < typedRangeLength; offset++) {
+              if (typedText[startIndex + offset] !== targetText[startIndex + offset]) {
+                isCorrect = false
+                break
+              }
+            }
+          }
+
+          if (isFullyTyped) {
+            if (isCorrect) {
               className = cn(className, 'text-foreground')
             } else {
               className = cn(className, 'text-destructive bg-destructive/10 rounded-none px-0.5')
             }
-          } else if (isCurrent && showCursor) {
-            // Current cursor position - show blinking left border cursor
-            className = cn(className, 'border-l-2 border-primary animate-pulse')
+          } else if (isCurrent) {
+            if (typedRangeLength > 0 && !isCorrect) {
+              className = cn(className, 'text-destructive bg-destructive/10 rounded-none px-0.5')
+            } else {
+              className = cn(className, 'text-muted-foreground/35')
+            }
+            if (showCursor) {
+              className = cn(className, 'border-l-2 border-primary animate-pulse')
+            }
           } else {
             // Not yet typed
             className = cn(className, 'text-muted-foreground/35')
@@ -91,8 +126,8 @@ const TypingDisplay: React.FC<TypingDisplayProps> = ({
 
       {/* Focus Overlay */}
       {!isFocused && (
-        <div className="absolute inset-0 flex items-center justify-center bg-background/40 backdrop-blur-[1px] transition-all duration-300 rounded-none select-none cursor-pointer">
-          <div className="flex items-center gap-2 px-4 py-2 bg-background border border-muted/50 rounded-none text-xs md:text-sm shadow-md animate-in fade-in zoom-in-95 duration-200">
+        <div className="absolute inset-0 flex items-center justify-center bg-background/10 transition-all duration-300 rounded-none select-none cursor-pointer">
+          <div className="flex items-center gap-2 px-4 py-2 bg-background border border-muted/50 rounded-none text-xs md:text-sm animate-in fade-in zoom-in-95 duration-200">
             <Keyboard className="h-4 w-4 text-primary animate-pulse" />
             <span className="text-muted-foreground font-sans font-medium">Click or press any key to focus</span>
           </div>

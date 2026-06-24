@@ -1,9 +1,9 @@
 // Core Types
-export type Language = 'english' | 'khmer' | 'custom';
+export type Language = 'english' | 'khmer' | 'mixed' | 'custom';
 export type TimerDuration = 15 | 30 | 60 | 120 | 180 | 240 | 300;
 export type TestStatus = 'idle' | 'running' | 'finished';
 export type Difficulty = 'beginner' | 'intermediate' | 'advanced' | 'expert';
-export type TestMode = 'time' | 'words' | 'quote' | 'zen' | 'custom';
+export type TestMode = 'time' | 'words' | 'quote' | 'zen' | 'custom' | 'practice';
 
 // Stats Types
 export interface TestStats {
