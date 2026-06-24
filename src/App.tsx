@@ -13,7 +13,7 @@ import { registerSW } from './registerSW'
 import type { TestMode, TimerDuration, Difficulty } from './types'
 import { soundService } from './services/soundService'
 import { cn } from './lib/utils'
-import { RotateCcw, Settings, Sun, Moon, Keyboard, X } from 'lucide-react'
+import { RotateCcw, Settings, Sun, Moon, X } from 'lucide-react'
 
 function App() {
   const [mode, setMode] = useState<TestMode>('time')
