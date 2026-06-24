@@ -1,69 +1,65 @@
 // Service Worker for PWA support
-const CACHE_NAME = 'typing-test-v1'
+const CACHE_NAME = 'sccg-typing-v1'
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/src/main.tsx',
-  '/src/App.tsx',
-  // Add more assets as needed
+  '/icons/icon-192.png',
+  '/icons/icon-512.png',
+  '/icons/icon-512-maskable.png',
+  '/favicon.svg',
 ]
 
-// Install event - cache assets
+// Install event - cache static assets only
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
-        console.log('Opened cache')
+        console.log('[SW] Caching app shell')
         return cache.addAll(ASSETS_TO_CACHE)
       })
       .then(() => self.skipWaiting())
   )
 })
 
-// Activate event - clean old caches
+// Activate event - clean old caches & claim clients immediately
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
-            return caches.delete(cacheName)
-          }
-        })
+        cacheNames
+          .filter((name) => name !== CACHE_NAME)
+          .map((name) => caches.delete(name))
       )
-    })
+    }).then(() => self.clients.claim())
   )
 })
 
-// Fetch event - serve from cache if available
+// Fetch event - network first, fall back to cache
 self.addEventListener('fetch', (event) => {
+  // Only handle GET requests
+  if (event.request.method !== 'GET') return
+
   event.respondWith(
-    caches.match(event.request)
+    fetch(event.request)
       .then((response) => {
-        // Cache hit - return response
-        if (response) {
-          return response
-        }
-
-        // Clone the request
-        const fetchRequest = event.request.clone()
-
-        return fetch(fetchRequest).then((response) => {
-          // Check if we received a valid response
-          if (!response || response.status !== 200 || response.type !== 'basic') {
-            return response
-          }
-
-          // Clone the response
+        // Cache valid responses for static assets
+        if (response && response.status === 200 && response.type === 'basic') {
           const responseToCache = response.clone()
-
-          caches.open(CACHE_NAME)
-            .then((cache) => {
-              cache.put(event.request, responseToCache)
-            })
-
-          return response
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseToCache)
+          })
+        }
+        return response
+      })
+      .catch(() => {
+        // Offline fallback: serve from cache
+        return caches.match(event.request).then((cached) => {
+          if (cached) return cached
+          // For navigation requests, return the app shell
+          if (event.request.mode === 'navigate') {
+            return caches.match('/index.html')
+          }
         })
       })
   )

@@ -13,7 +13,7 @@ export const useTheme = () => {
 
   useEffect(() => {
     const root = document.documentElement
-    const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+    const systemTheme = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'
     const activeTheme = theme === 'system' ? systemTheme : theme
 
     root.classList.remove('light', 'dark')
