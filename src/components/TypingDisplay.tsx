@@ -1,6 +1,8 @@
 import React from 'react'
 import { cn } from '../lib/utils'
+import { normalizeText, segmentGraphemes } from '../lib/utils'
 import { Keyboard } from 'lucide-react'
+import { ScrollArea } from './ui/scroll-area'
 import type { TestMode } from '../types'
 
 interface TypingDisplayProps {
@@ -20,25 +22,36 @@ const TypingDisplay: React.FC<TypingDisplayProps> = ({
   onDisplayClick,
   isFocused = true
 }) => {
-  // Segment targetText by grapheme clusters (user-perceived characters)
-  // This prevents complex Khmer combining characters from rendering brokenly.
-  const segments = React.useMemo(() => {
-    if (!targetText) return []
-    try {
-      const segmenter = new Intl.Segmenter(undefined, { granularity: 'grapheme' })
-      return Array.from(segmenter.segment(targetText))
-    } catch (e) {
-      // Fallback if Intl.Segmenter is not available in the environment
-      return targetText.split('').map((char, index) => ({
-        segment: char,
-        index
-      }))
-    }
-  }, [targetText])
+  // Segment both texts into grapheme clusters (handles Khmer multi-codepoint characters)
+  const targetGraphemes = React.useMemo(
+    () => segmentGraphemes(normalizeText(targetText)),
+    [targetText]
+  )
+
+  const typedGraphemesArr = React.useMemo(
+    () => segmentGraphemes(normalizeText(typedText)),
+    [typedText]
+  )
+
+  // Detect if the last typed grapheme is a valid prefix of its target grapheme.
+  const lastTypedIdx = typedGraphemesArr.length - 1
+  const isLastInProgress =
+    lastTypedIdx >= 0 &&
+    targetGraphemes[lastTypedIdx] !== undefined &&
+    typedGraphemesArr[lastTypedIdx] !== targetGraphemes[lastTypedIdx] &&
+    targetGraphemes[lastTypedIdx].startsWith(typedGraphemesArr[lastTypedIdx])
+
+  // Committed graphemes: fully past (excludes the in-progress one if any)
+  const commitCount = isLastInProgress
+    ? typedGraphemesArr.length - 1
+    : typedGraphemesArr.length
+
+  // Ghost text (remaining target) starts after all typed positions
+  const ghostStartIndex = typedGraphemesArr.length
 
   return (
     <div
-      className="relative p-6 md:p-8 min-h-[160px] text-xl md:text-2xl leading-relaxed font-mono select-none wrap-break-words transition-all cursor-text rounded-none bg-card/20 border border-muted/20"
+      className="relative select-none transition-all cursor-text rounded-none bg-card/20 border border-muted/20 flex flex-col"
       onClick={onDisplayClick}
       role="textbox"
       aria-label="Typing display"
@@ -50,98 +63,97 @@ const TypingDisplay: React.FC<TypingDisplayProps> = ({
         }
       }}
     >
-      {/* Target characters */}
-      <div className={cn(
-        "transition-all duration-300",
-        !isFocused && "blur-[1.5px] opacity-40"
-      )}>
-        {segments.map((seg, index) => {
-          const char = seg.segment
-          const startIndex = seg.index
-          const endIndex = startIndex + char.length
+      {/* ScrollArea constraint wrapper */}
+      <ScrollArea className="w-full h-full max-h-[55vh] md:max-h-[60vh]">
+        <div className="p-6 md:p-8 min-h-[160px]">
+          {/* Main text area — word-processor style */}
+          <div
+            className={cn(
+              'text-xl md:text-2xl leading-loose font-sans tracking-wide transition-all duration-300',
+              !isFocused && 'blur-[1.5px] opacity-40'
+            )}
+          >
+            {/* ── Left of cursor: what the user actually typed ─────────────────── */}
+            {typedGraphemesArr.slice(0, commitCount).map((glyph, i) => {
+              const targetGlyph = targetGraphemes[i]
+              const isCorrect = glyph === targetGlyph
 
-          const isFullyTyped = typedText.length >= endIndex
-          const isCurrent = typedText.length >= startIndex && typedText.length < endIndex
-
-          // Determine correctness of whatever has been typed for this segment so far
-          let isCorrect = true
-          const typedRangeLength = Math.min(typedText.length, endIndex) - startIndex
-          if (typedRangeLength > 0) {
-            for (let offset = 0; offset < typedRangeLength; offset++) {
-              if (typedText[startIndex + offset] !== targetText[startIndex + offset]) {
-                isCorrect = false
-                break
+              // Newline in quote mode
+              if (mode === 'quote' && targetGlyph === '\n') {
+                return <br key={`t-${i}`} />
               }
-            }
-          }
 
-          // Build className WITHOUT any cursor border — cursor is a separate element
-          let charClassName = 'transition-colors duration-100'
+              if (isCorrect) {
+                // Correctly typed — looks like normal document text
+                return (
+                  <span key={`t-${i}`} className="text-foreground">
+                    {glyph}
+                  </span>
+                )
+              }
 
-          if (isFullyTyped) {
-            charClassName = cn(charClassName, isCorrect
-              ? 'text-foreground'
-              : 'text-destructive bg-destructive/10'
-            )
-          } else if (isCurrent) {
-            charClassName = cn(charClassName,
-              typedRangeLength > 0 && !isCorrect
-                ? 'text-destructive bg-destructive/10'
-                : 'text-muted-foreground/35'
-            )
-          } else {
-            charClassName = cn(charClassName, 'text-muted-foreground/35')
-          }
+              // Incorrectly typed — show typed char in red with wavy underline (spell-check style)
+              return (
+                <span
+                  key={`t-${i}`}
+                  className="text-destructive underline decoration-wavy decoration-destructive/70"
+                >
+                  {glyph === ' ' ? '\u00A0' /* non-breaking space so underline shows */ : glyph}
+                </span>
+              )
+            })}
 
-          // Cursor: a standalone 2px bar with -2px right margin → zero net layout width.
-          // Inserted BEFORE the current character so no surrounding char shifts.
-          const cursorEl = (isCurrent && showCursor) ? (
-            <span
-              className="inline-block w-0.5 -mr-0.5 bg-primary animate-pulse align-text-bottom"
-              style={{ height: '1.1em' }}
-              aria-hidden="true"
-            />
-          ) : null
+            {/* ── Cursor ──────────────────────────────────────────────────────── */}
+            {showCursor && (
+              <span
+                className="inline-block w-[2px] -mx-[1px] bg-primary animate-pulse rounded-full"
+                style={{ height: '1.15em', verticalAlign: 'text-bottom' }}
+                aria-hidden="true"
+              />
+            )}
 
-          // Handle newlines for quote mode
-          if (mode === 'quote' && char === '\n') {
-            return <br key={index} />
-          }
+            {/* ── In-progress Khmer syllable (at cursor position) ────────────── */}
+            {isLastInProgress && targetGraphemes[lastTypedIdx] && (
+              <span className="text-muted-foreground/50">
+                {targetGraphemes[lastTypedIdx]}
+              </span>
+            )}
 
-          // Spaces: empty fixed-width box — no content to overflow or shift
-          if (char === ' ') {
-            return (
-              <React.Fragment key={index}>
-                {cursorEl}
-                <span className={cn(charClassName, 'inline-block w-[1ch] overflow-hidden')} />
-              </React.Fragment>
-            )
-          }
+            {/* ── Right of cursor: remaining target as ghost / hint text ───────── */}
+            {targetGraphemes.slice(ghostStartIndex).map((glyph, i) => {
+              const absIndex = ghostStartIndex + i
 
-          return (
-            <React.Fragment key={index}>
-              {cursorEl}
-              <span className={charClassName}>{char}</span>
-            </React.Fragment>
-          )
-        })}
+              if (mode === 'quote' && glyph === '\n') {
+                return <br key={`g-${absIndex}`} />
+              }
 
-        {/* Show cursor at start when text is empty and idle */}
-        {targetText.length === 0 && showCursor && (
-          <span
-            className="inline-block w-0.5 bg-primary animate-pulse align-text-bottom"
-            style={{ height: '1.1em' }}
-            aria-hidden="true"
-          />
-        )}
-      </div>
+              return (
+                <span key={`g-${absIndex}`} className="text-muted-foreground/30">
+                  {glyph}
+                </span>
+              )
+            })}
+
+            {/* Empty state cursor */}
+            {targetText.length === 0 && showCursor && (
+              <span
+                className="inline-block w-[2px] bg-primary animate-pulse rounded-full"
+                style={{ height: '1.15em', verticalAlign: 'text-bottom' }}
+                aria-hidden="true"
+              />
+            )}
+          </div>
+        </div>
+      </ScrollArea>
 
       {/* Focus Overlay */}
       {!isFocused && (
-        <div className="absolute inset-0 flex items-center justify-center bg-background/10 transition-all duration-300 rounded-none select-none cursor-pointer">
-          <div className="flex items-center gap-2 px-4 py-2 bg-background border border-muted/50 rounded-none text-xs md:text-sm animate-in fade-in zoom-in-95 duration-200">
+        <div className="absolute inset-0 flex items-center justify-center bg-background/10 transition-all duration-300 rounded-none select-none cursor-pointer z-10 backdrop-blur-[1px]">
+          <div className="flex items-center gap-2 px-4 py-2 bg-background border border-muted/50 shadow-sm rounded-none text-xs md:text-sm animate-in fade-in zoom-in-95 duration-200">
             <Keyboard className="h-4 w-4 text-primary animate-pulse" />
-            <span className="text-muted-foreground font-sans font-medium">Click or press any key to focus</span>
+            <span className="text-muted-foreground font-sans font-medium">
+              Click or press any key to focus
+            </span>
           </div>
         </div>
       )}

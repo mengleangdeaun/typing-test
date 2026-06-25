@@ -1,4 +1,5 @@
 import type { TestStats, AdvancedStats, TestMode, Session } from '../types'
+import { segmentGraphemes, normalizeText } from '../lib/utils'
 import { generateId } from '../lib/utils'
 
 export const calculateStats = (
@@ -11,8 +12,10 @@ export const calculateStats = (
     return getEmptyStats()
   }
 
-  const typedChars = typed.split('')
-  const targetChars = target.split('')
+  // Use grapheme clusters so Khmer (and other multi-codepoint scripts) are
+  // counted and compared correctly.
+  const typedChars = segmentGraphemes(normalizeText(typed))
+  const targetChars = segmentGraphemes(normalizeText(target))
   const minLength = Math.min(typedChars.length, targetChars.length)
 
   // Basic calculations
@@ -21,10 +24,17 @@ export const calculateStats = (
   const wpmHistory: Array<{ time: number; wpm: number }> = []
   
   for (let i = 0; i < minLength; i++) {
-    if (typedChars[i] === targetChars[i]) {
+    const typedGlyph = typedChars[i]
+    const targetGlyph = targetChars[i]
+    const isLastTyped = i === typedChars.length - 1
+
+    if (typedGlyph === targetGlyph) {
       correctChars++
+    } else if (isLastTyped && targetGlyph.startsWith(typedGlyph)) {
+      // Last grapheme is a valid prefix of the target (Khmer syllable still composing).
+      // Don't count it as correct yet, but don't count it as an error either.
     } else {
-      const char = targetChars[i] || 'unknown'
+      const char = targetGlyph || 'unknown'
       errors[char] = (errors[char] || 0) + 1
     }
   }
@@ -43,13 +53,15 @@ export const calculateStats = (
     }
   }
 
-  // Calculate WPM metrics
-  const rawWpm = Math.round((typed.length / 5) / timeElapsedMinutes)
+  // Calculate WPM metrics — use grapheme count (not code-unit length) so that
+  // Khmer characters are not counted multiple times due to their multi-codepoint nature.
+  const typedGraphemeCount = typedChars.length
+  const rawWpm = Math.round((typedGraphemeCount / 5) / timeElapsedMinutes)
   const netWpm = Math.round((correctChars / 5) / timeElapsedMinutes)
-  const wpm = mode === 'zen' ? Math.round((typed.length / 5) / Math.max(timeElapsedMinutes, 0.1)) : netWpm
+  const wpm = mode === 'zen' ? Math.round((typedGraphemeCount / 5) / Math.max(timeElapsedMinutes, 0.1)) : netWpm
 
-  // Accuracy metrics
-  const accuracy = typed.length > 0 ? Math.round((correctChars / typed.length) * 100) : 0
+  // Accuracy metrics — use grapheme counts, not code-unit lengths
+  const accuracy = typedGraphemeCount > 0 ? Math.round((correctChars / typedGraphemeCount) * 100) : 0
   const adjustedAccuracy = minLength > 0 ? Math.round((correctChars / minLength) * 100) : 0
 
   // Consistency (simplified)
@@ -66,9 +78,9 @@ export const calculateStats = (
     rawWpm,
     netWpm,
     adjustedAccuracy,
-    charactersTyped: typed.length,
+    charactersTyped: typedGraphemeCount,
     correctChars,
-    incorrectChars: typed.length - correctChars,
+    incorrectChars: typedGraphemeCount - correctChars,
     totalTime: timeElapsedMinutes * 60,
     typingTime: timeElapsedMinutes * 60,
     idleTime: 0,

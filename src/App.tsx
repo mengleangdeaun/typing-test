@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { segmentGraphemes, normalizeText } from './lib/utils'
 import { useTypingEngine } from './hooks/useTypingEngine'
 import { useTheme } from './hooks/useTheme'
 import { Button } from './components/ui/button'
@@ -9,11 +10,12 @@ import SettingsPanel from './components/SettingsPanel'
 import SoundControls from './components/SoundControls'
 import ExportControls from './components/ExportControls'
 import PWAInstallPrompt from './components/PWAInstallPrompt'
+import { ScrollArea } from './components/ui/scroll-area'
 import { registerSW } from './registerSW'
 import type { TestMode, TimerDuration, Difficulty } from './types'
 import { soundService } from './services/soundService'
 import { cn } from './lib/utils'
-import { RotateCcw, Settings, Sun, Moon, X } from 'lucide-react'
+import { RotateCcw, Settings, Sun, Moon } from 'lucide-react'
 
 function App() {
   const [mode, setMode] = useState<TestMode>('time')
@@ -62,8 +64,6 @@ function App() {
     }
   }, [status])
 
-  // Safety net: prevent the hidden textarea from scrolling the page
-  // when its value grows (browser may try to keep caret visible)
   useEffect(() => {
     if (inputRef.current) {
       inputRef.current.scrollTop = 0
@@ -73,10 +73,12 @@ function App() {
   useEffect(() => {
     if (!soundEnabled || status !== 'running' || typedText.length === 0) return
 
-    const lastChar = typedText[typedText.length - 1]
-    const targetChar = targetText[typedText.length - 1]
+    const typedGraphemes = segmentGraphemes(normalizeText(typedText))
+    const targetGraphemes = segmentGraphemes(normalizeText(targetText))
+    const lastTypedGrapheme = typedGraphemes[typedGraphemes.length - 1]
+    const correspondingTargetGrapheme = targetGraphemes[typedGraphemes.length - 1]
     
-    if (lastChar === targetChar) {
+    if (lastTypedGrapheme === correspondingTargetGrapheme) {
       soundService.playKeyCorrect()
     } else {
       soundService.playKeyError()
@@ -89,10 +91,8 @@ function App() {
     }
   }, [status, soundEnabled])
 
-  // Global key listener to auto-focus hidden input on typing start
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
-      // Don't intercept if user is typing in another input (like custom text input)
       if (
         document.activeElement &&
         (document.activeElement.tagName === 'INPUT' ||
@@ -102,17 +102,14 @@ function App() {
         return
       }
 
-      // Check for modifier keys to prevent capturing shortcuts
       if (e.ctrlKey || e.altKey || e.metaKey) {
         return
       }
 
-      // Avoid capturing special navigation keys or function keys
       if (e.key.length > 1 && e.key !== 'Backspace' && e.key !== 'Spacebar' && e.key !== 'Enter') {
         return
       }
 
-      // Focus the hidden textarea
       if (status === 'idle' || status === 'running') {
         inputRef.current?.focus({ preventScroll: true })
       }
@@ -132,7 +129,6 @@ function App() {
     resetTest()
   }
 
-  // When language changes in Practice mode, reset to paragraph 0 of the new language
   const handleLanguageChange = (newLang: 'english' | 'khmer' | 'mixed') => {
     setLanguage(newLang)
     if (mode === 'practice') {
@@ -140,7 +136,6 @@ function App() {
     }
   }
 
-  // When a paragraph is selected, update both index and language, and focus input immediately
   const handlePracticeIndexChange = (index: number, newLang: 'english' | 'khmer' | 'mixed') => {
     setLanguage(newLang)
     setPracticeIndex(index)
@@ -148,14 +143,13 @@ function App() {
   }
 
   const progress = targetText.length > 0 
-    ? (typedText.length / targetText.length) * 100 
+    ? (segmentGraphemes(normalizeText(typedText)).length / segmentGraphemes(normalizeText(targetText)).length) * 100 
     : 0
 
   const isFinished = status === 'finished'
 
   return (
-    <div className="min-h-screen bg-background text-foreground transition-colors duration-300 flex flex-col">
-      {/* Hidden textarea: fixed at top-left so the browser never scrolls the page to bring it into view */}
+    <div className="h-screen overflow-hidden bg-background text-foreground transition-colors duration-300 flex flex-col">
       <textarea
         ref={inputRef}
         value={typedText}
@@ -170,7 +164,6 @@ function App() {
         aria-hidden="true"
         tabIndex={-1}
       />
-      {/* Mobile Settings Overlay */}
       {showSettings && (
         <div 
           className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 lg:hidden"
@@ -178,9 +171,10 @@ function App() {
         />
       )}
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-10 w-full flex-1 flex flex-col">
-        {/* Header - More compact and modern */}
-        <header className="flex items-center justify-between mb-8">
+      {/* FULL WIDTH HEADER */}
+      <header className="shrink-0 z-50 bg-background/95 backdrop-blur border-b w-full">
+        {/* INNER CONTAINER (Aligns with main body) */}
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="h-9 w-9 overflow-hidden">
               <img 
@@ -196,142 +190,122 @@ function App() {
           </div>
           
           <div className="flex items-center gap-2">
-            {/* Desktop controls */}
+            {/* Desktop-only controls */}
             <div className="hidden sm:flex items-center gap-2">
               <SoundControls />
               <ExportControls resultsRef={resultsRef} />
-              <Button 
-                variant="outline" 
-                size="icon" 
-                onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                className="h-8 bg-card w-8"
-                aria-label="Toggle theme"
-              >
-                {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-              </Button>
             </div>
+
+            {/* Always visible Theme Toggle */}
+            <Button 
+              variant="outline" 
+              size="icon" 
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              className="h-8 bg-card w-8 shrink-0"
+              aria-label="Toggle theme"
+            >
+              {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </Button>
             
-            {/* Mobile menu button */}
+            {/* Settings button */}
             <Button 
               variant={showSettings ? "default" : "outline"} 
               size="sm" 
               onClick={() => setShowSettings(!showSettings)}
-              className="gap-1.5 lg:hidden"
+              className="h-8 px-2 sm:px-3 lg:hidden shrink-0"
             >
               <Settings className="h-4 w-4" />
-              Settings
+              <span className="hidden sm:inline-block sm:ml-1.5">Settings</span>
             </Button>
           </div>
-        </header>
+        </div>
+      </header>
 
-        {/* Main Content Area */}
-        <div className="flex-1 flex flex-col lg:flex-row gap-8">
-          {/* Main Typing Area */}
-          <div className="flex-1 min-w-0">
-            {/* Live Statistics Bar */}
-            {!isFinished && (
-              <div className="mb-6">
-                <LiveStats
-                  stats={stats}
-                  timeLeft={timeLeft}
-                  progress={progress}
-                  mode={mode}
-                  wordCount={wordCount}
-                />
-              </div>
-            )}
-
-            {/* Typing Area */}
-            {!isFinished && (
-              <div ref={resultsRef} className="space-y-6">
-                {/* Status Bar */}
-                <div className="flex items-center justify-between px-4 py-2 bg-card">
-                  <div className="flex items-center gap-2 text-sm">
-                    <span className="text-muted-foreground">Mode:</span>
-                    <span className="font-medium capitalize">{mode}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <span className="text-muted-foreground">Status:</span>
-                    <span className={cn(
-                      "inline-block w-2 h-2 rounded-full",
-                      status === 'running' && "bg-green-500 animate-pulse",
-                      status === 'idle' && "bg-yellow-500"
-                    )} />
-                    <span className="font-medium capitalize">{status}</span>
-                  </div>
-                </div>
-
-                {/* Typing Display */}
-                <div className="border bg-card">
-                  <TypingDisplay
-                    targetText={targetText}
-                    typedText={typedText}
-                    showCursor={true}
+      {/* MAIN CONTAINER (Restricts width for the layout) */}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 w-full flex-1 flex flex-col overflow-hidden">
+        <div className="flex-1 overflow-hidden w-full pt-8 pb-4 flex flex-col lg:flex-row gap-8">
+          
+          {/* TYPING AREA */}
+          <ScrollArea className="flex-1 min-w-0 pr-4">
+            <div className="pb-8">
+              {!isFinished && (
+                <div className="mb-6">
+                  <LiveStats
+                    stats={stats}
+                    timeLeft={timeLeft}
+                    progress={progress}
                     mode={mode}
-                    onDisplayClick={() => inputRef.current?.focus()}
-                    isFocused={isFocused}
+                    wordCount={wordCount}
                   />
                 </div>
+              )}
 
+              {!isFinished && (
+                <div ref={resultsRef} className="space-y-6">
+                  <div className="flex items-center justify-between px-4 py-2 bg-card">
+                    <div className="flex items-center gap-2 text-sm">
+                      <span className="text-muted-foreground">Mode:</span>
+                      <span className="font-medium capitalize">{mode}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <span className="text-muted-foreground">Status:</span>
+                      <span className={cn(
+                        "inline-block w-2 h-2 rounded-full",
+                        status === 'running' && "bg-green-500 animate-pulse",
+                        status === 'idle' && "bg-yellow-500"
+                      )} />
+                      <span className="font-medium capitalize">{status}</span>
+                    </div>
+                  </div>
 
+                  <div className="border bg-card">
+                    <TypingDisplay
+                      targetText={targetText}
+                      typedText={typedText}
+                      showCursor={true}
+                      mode={mode}
+                      onDisplayClick={() => inputRef.current?.focus()}
+                      isFocused={isFocused}
+                    />
+                  </div>
 
-                {/* Action Buttons */}
-                <div className="flex gap-3 justify-center">
-                  <Button 
-                    onClick={handleRestart} 
-                    variant="default"
-                    className="px-6 py-6"
-                  >
-                    <RotateCcw className="h-4 w-4 mr-2" />
-                    Restart Test
-                  </Button>
+                  <div className="flex gap-3 justify-center">
+                    <Button 
+                      onClick={handleRestart} 
+                      variant="default"
+                      className="px-6 py-6"
+                    >
+                      <RotateCcw className="h-4 w-4 mr-2" />
+                      Restart Test
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* Results Display */}
-            {isFinished && stats && (
-              <div ref={resultsRef}>
-                <ResultsDisplay
-                  stats={stats}
-                  mode={mode}
-                  wpmHistory={wpmHistory}
-                  onRestart={handleRestart}
-                  onChangeMode={handleModeChange}
-                  typedText={typedText}
-                  targetText={targetText}
-                />
-              </div>
-            )}
-          </div>
-
-          {/* Settings Sidebar */}
-          <div className={cn(
-            "lg:w-72 shrink-0",
-            "fixed inset-y-0 right-0 z-50 lg:z-0",
-            "w-80 lg:w-72",
-            "bg-background lg:bg-transparent",
-            "border-l lg:border-l-0",
-            "transition-transform duration-300 ease-in-out lg:transition-none",
-            showSettings ? "translate-x-0" : "translate-x-full lg:translate-x-0",
-            "top-0 lg:top-0",
-            "overflow-y-auto",
-            "lg:max-h-[calc(100vh-6rem)] lg:sticky lg:self-start",
-            "shadow-2xl lg:shadow-none"
-          )}>
-            {/* Mobile close button */}
-            <div className="lg:hidden flex items-center justify-between p-4 border-b">
-              <h2 className="font-semibold">Settings</h2>
-              <Button 
-                variant="ghost" 
-                size="icon"
-                onClick={() => setShowSettings(false)}
-              >
-                <X className="h-4 w-4" />
-              </Button>
+              {isFinished && stats && (
+                <div ref={resultsRef}>
+                  <ResultsDisplay
+                    stats={stats}
+                    mode={mode}
+                    wpmHistory={wpmHistory}
+                    onRestart={handleRestart}
+                    onChangeMode={handleModeChange}
+                    typedText={typedText}
+                    targetText={targetText}
+                  />
+                </div>
+              )}
             </div>
+          </ScrollArea>
 
-            <div className="p-4 lg:p-0">
+          {/* SETTINGS SIDEBAR */}
+          <div className={cn(
+            "fixed inset-y-0 right-0 z-50 w-80 bg-background border-l shadow-2xl transition-transform duration-300 ease-in-out",
+            showSettings ? "translate-x-0" : "translate-x-full",
+            "lg:static lg:translate-x-0 lg:z-0 lg:w-72 lg:shrink-0 lg:h-full lg:shadow-none lg:bg-transparent lg:border-none",
+            "flex flex-col"
+          )}>
+            <div className="flex-1 overflow-hidden flex flex-col min-h-0"> 
               <SettingsPanel
                 isOpen={true}
                 onClose={() => setShowSettings(false)}
@@ -359,12 +333,14 @@ function App() {
             </div>
           </div>
         </div>
-
-        {/* Footer */}
-        <footer className="text-center text-xs text-muted-foreground/60 py-6 mt-8 border-t">
-          <p>SCCGroup Typing Test &copy; {new Date().getFullYear()} • Press any key to start typing • Esc to restart</p>
-        </footer>
       </div>
+
+      {/* FULL WIDTH FOOTER */}
+      <footer className="shrink-0 w-full border-t bg-background">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 text-center text-xs text-muted-foreground/60">
+          <p>SCCGroup Typing Test &copy; {new Date().getFullYear()} • Press any key to start typing • Esc to restart</p>
+        </div>
+      </footer>
       
       <PWAInstallPrompt />
     </div>

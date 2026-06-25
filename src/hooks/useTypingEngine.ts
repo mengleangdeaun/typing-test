@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react'
 import type { TestStatus, TestMode, Difficulty, TimerDuration } from '../types'
 import { calculateStats, saveSession } from '../services/statsService'
 import { getRandomText, generateZenText, getQuoteText, getPracticeText } from '../services/textService'
+import { segmentGraphemes, normalizeText } from '../lib/utils'
 
 interface UseTypingEngineProps {
   mode: TestMode
@@ -149,13 +150,15 @@ export const useTypingEngine = ({
     // Calculate WPM for history - collect at regular intervals
     if (value.length > 0 && currentStatus === 'running') {
       const elapsedMinutes = (Date.now() - currentStartTime) / 60000
-      const currentWpm = Math.round((value.length / 5) / Math.max(elapsedMinutes, 0.01))
+      // Use grapheme count so Khmer characters count as 1 each, not by code-unit size
+      const typedGraphemeCount = segmentGraphemes(normalizeText(value)).length
+      const currentWpm = Math.round((typedGraphemeCount / 5) / Math.max(elapsedMinutes, 0.01))
       
       // Add to history every 5 characters or when WPM changes significantly
       setWpmHistory(prev => {
         const lastEntry = prev[prev.length - 1]
         if (!lastEntry || 
-            value.length % 5 === 0 || 
+            typedGraphemeCount % 5 === 0 || 
             Math.abs(lastEntry.wpm - currentWpm) > 2) {
           return [...prev, { time: Date.now(), wpm: currentWpm }]
         }
@@ -170,7 +173,10 @@ export const useTypingEngine = ({
         setStatus('finished')
       }
     } else if (mode === 'quote' || mode === 'time' || mode === 'custom' || mode === 'practice') {
-      if (value.length >= targetText.length) {
+      // Compare grapheme counts: typed Khmer chars vs target Khmer chars
+      const typedGraphemes = segmentGraphemes(normalizeText(value))
+      const targetGraphemes = segmentGraphemes(normalizeText(targetText))
+      if (typedGraphemes.length >= targetGraphemes.length) {
         setStatus('finished')
       }
     }

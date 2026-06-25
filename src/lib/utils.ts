@@ -5,6 +5,34 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+/**
+ * Splits a string into grapheme clusters (user-perceived characters).
+ * Critical for Khmer script, where a single visible character is often
+ * composed of multiple Unicode code points.
+ */
+export const segmentGraphemes = (text: string): string[] => {
+  if (!text) return []
+  try {
+    const segmenter = new Intl.Segmenter(undefined, { granularity: 'grapheme' })
+    return Array.from(segmenter.segment(text)).map(s => s.segment)
+  } catch {
+    // Fallback: split by code point (better than split('') for emoji/surrogate pairs)
+    return [...text]
+  }
+}
+
+/**
+ * Applies Unicode NFC normalization so that combining sequences produced
+ * by different Khmer IMEs compare equal when they are visually identical.
+ */
+export const normalizeText = (text: string): string => {
+  try {
+    return text.normalize('NFC')
+  } catch {
+    return text
+  }
+}
+
 export const formatTime = (seconds: number): string => {
   if (seconds < 60) return `${seconds}s`
   const mins = Math.floor(seconds / 60)
