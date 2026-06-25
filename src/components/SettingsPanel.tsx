@@ -67,7 +67,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
   const isDisabled = status === 'running'
 
   return (
-    <Card className=" bg-card shadow-none border">
+    <Card className="border" >
       <CardContent className="space-y-5">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-muted/20 pb-3">

@@ -5,6 +5,7 @@ import { Button } from './ui/button'
 import { RotateCcw, TrendingUp, Target, Clock, Zap } from 'lucide-react'
 import { getWpmColor, getAccuracyColor } from '../lib/utils'
 import SpeedGraph from './stats/SpeedGraph'
+import TypingSnapshot from './stats/TypingSnapshot'
 
 interface ResultsDisplayProps {
   stats: TestStats | null
@@ -12,14 +13,17 @@ interface ResultsDisplayProps {
   wpmHistory: Array<{ time: number; wpm: number }>
   onRestart: () => void
   onChangeMode: (mode: TestMode) => void
+  typedText: string
+  targetText: string
 }
 
 const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   stats,
-  mode: _mode,
   wpmHistory,
   onRestart,
-  onChangeMode
+  onChangeMode,
+  typedText,
+  targetText
 }) => {
   if (!stats) return null
 
@@ -52,7 +56,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
 
   return (
     <div className="space-y-6 animate-in fade-in-50 slide-in-from-bottom-5 duration-500">
-      <Card className="!border-none" >
+      <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <TrendingUp className="h-5 w-5 text-primary" />
@@ -104,6 +108,13 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                   </div>
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* Typing Snapshot — only shown when user didn't finish the full text */}
+          {typedText.length < targetText.length && (
+            <div className="pt-2 border-t border-muted/20">
+              <TypingSnapshot targetText={targetText} typedText={typedText} />
             </div>
           )}
 

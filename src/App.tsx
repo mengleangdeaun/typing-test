@@ -58,9 +58,17 @@ function App() {
 
   useEffect(() => {
     if (status === 'idle' || status === 'running') {
-      inputRef.current?.focus()
+      inputRef.current?.focus({ preventScroll: true })
     }
   }, [status])
+
+  // Safety net: prevent the hidden textarea from scrolling the page
+  // when its value grows (browser may try to keep caret visible)
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.scrollTop = 0
+    }
+  }, [typedText])
 
   useEffect(() => {
     if (!soundEnabled || status !== 'running' || typedText.length === 0) return
@@ -106,7 +114,7 @@ function App() {
 
       // Focus the hidden textarea
       if (status === 'idle' || status === 'running') {
-        inputRef.current?.focus()
+        inputRef.current?.focus({ preventScroll: true })
       }
     }
     
@@ -116,7 +124,7 @@ function App() {
 
   const handleRestart = () => {
     resetTest()
-    inputRef.current?.focus()
+    inputRef.current?.focus({ preventScroll: true })
   }
 
   const handleModeChange = (newMode: TestMode) => {
@@ -136,7 +144,7 @@ function App() {
   const handlePracticeIndexChange = (index: number, newLang: 'english' | 'khmer' | 'mixed') => {
     setLanguage(newLang)
     setPracticeIndex(index)
-    setTimeout(() => inputRef.current?.focus(), 50)
+    setTimeout(() => inputRef.current?.focus({ preventScroll: true }), 50)
   }
 
   const progress = targetText.length > 0 
@@ -147,6 +155,21 @@ function App() {
 
   return (
     <div className="min-h-screen bg-background text-foreground transition-colors duration-300 flex flex-col">
+      {/* Hidden textarea: fixed at top-left so the browser never scrolls the page to bring it into view */}
+      <textarea
+        ref={inputRef}
+        value={typedText}
+        onChange={(e) => handleTyping(e.target.value)}
+        onFocus={() => setIsFocused(true)}
+        onBlur={() => setIsFocused(false)}
+        className="fixed top-0 left-0 opacity-0 w-px h-px overflow-hidden pointer-events-none"
+        autoComplete="off"
+        autoCorrect="off"
+        autoCapitalize="off"
+        spellCheck="false"
+        aria-hidden="true"
+        tabIndex={-1}
+      />
       {/* Mobile Settings Overlay */}
       {showSettings && (
         <div 
@@ -161,7 +184,7 @@ function App() {
           <div className="flex items-center gap-3">
             <div className="h-9 w-9 overflow-hidden">
               <img 
-                src="/logo.svg" // or "/logo.png", "/favicon.ico", etc.
+                src="/logo.svg" 
                 alt="SCCG Logo"
                 className="h-full w-full object-contain"
               />
@@ -250,19 +273,7 @@ function App() {
                   />
                 </div>
 
-                {/* Hidden input for capturing keystrokes */}
-                <textarea
-                  ref={inputRef}
-                  value={typedText}
-                  onChange={(e) => handleTyping(e.target.value)}
-                  onFocus={() => setIsFocused(true)}
-                  onBlur={() => setIsFocused(false)}
-                  className="absolute opacity-0 w-0 h-0"
-                  autoComplete="off"
-                  autoCorrect="off"
-                  autoCapitalize="off"
-                  spellCheck="false"
-                />
+
 
                 {/* Action Buttons */}
                 <div className="flex gap-3 justify-center">
@@ -287,6 +298,8 @@ function App() {
                   wpmHistory={wpmHistory}
                   onRestart={handleRestart}
                   onChangeMode={handleModeChange}
+                  typedText={typedText}
+                  targetText={targetText}
                 />
               </div>
             )}

@@ -35,10 +35,10 @@ const TypingDisplay: React.FC<TypingDisplayProps> = ({
       }))
     }
   }, [targetText])
-  
+
   return (
-    <div 
-      className="relative p-6 md:p-8 min-h-[160px] text-xl md:text-2xl leading-relaxed font-mono select-none break-words transition-all cursor-text rounded-none bg-card/20 border border-muted/20"
+    <div
+      className="relative p-6 md:p-8 min-h-[160px] text-xl md:text-2xl leading-relaxed font-mono select-none wrap-break-words transition-all cursor-text rounded-none bg-card/20 border border-muted/20"
       onClick={onDisplayClick}
       role="textbox"
       aria-label="Typing display"
@@ -59,12 +59,10 @@ const TypingDisplay: React.FC<TypingDisplayProps> = ({
           const char = seg.segment
           const startIndex = seg.index
           const endIndex = startIndex + char.length
-          
+
           const isFullyTyped = typedText.length >= endIndex
           const isCurrent = typedText.length >= startIndex && typedText.length < endIndex
-          
-          let className = 'transition-colors duration-100'
-          
+
           // Determine correctness of whatever has been typed for this segment so far
           let isCorrect = true
           const typedRangeLength = Math.min(typedText.length, endIndex) - startIndex
@@ -77,50 +75,64 @@ const TypingDisplay: React.FC<TypingDisplayProps> = ({
             }
           }
 
+          // Build className WITHOUT any cursor border — cursor is a separate element
+          let charClassName = 'transition-colors duration-100'
+
           if (isFullyTyped) {
-            if (isCorrect) {
-              className = cn(className, 'text-foreground')
-            } else {
-              className = cn(className, 'text-destructive bg-destructive/10 rounded-none px-0.5')
-            }
+            charClassName = cn(charClassName, isCorrect
+              ? 'text-foreground'
+              : 'text-destructive bg-destructive/10'
+            )
           } else if (isCurrent) {
-            if (typedRangeLength > 0 && !isCorrect) {
-              className = cn(className, 'text-destructive bg-destructive/10 rounded-none px-0.5')
-            } else {
-              className = cn(className, 'text-muted-foreground/35')
-            }
-            if (showCursor) {
-              className = cn(className, 'border-l-2 border-primary animate-pulse')
-            }
+            charClassName = cn(charClassName,
+              typedRangeLength > 0 && !isCorrect
+                ? 'text-destructive bg-destructive/10'
+                : 'text-muted-foreground/35'
+            )
           } else {
-            // Not yet typed
-            className = cn(className, 'text-muted-foreground/35')
+            charClassName = cn(charClassName, 'text-muted-foreground/35')
           }
 
-          // Special handling for spaces
-          if (char === ' ') {
-            return (
-              <span key={index} className={cn(className, 'inline-block w-2.5')}>
-                &nbsp;
-              </span>
-            )
-          }
+          // Cursor: a standalone 2px bar with -2px right margin → zero net layout width.
+          // Inserted BEFORE the current character so no surrounding char shifts.
+          const cursorEl = (isCurrent && showCursor) ? (
+            <span
+              className="inline-block w-0.5 -mr-0.5 bg-primary animate-pulse align-text-bottom"
+              style={{ height: '1.1em' }}
+              aria-hidden="true"
+            />
+          ) : null
 
           // Handle newlines for quote mode
           if (mode === 'quote' && char === '\n') {
             return <br key={index} />
           }
 
+          // Spaces: empty fixed-width box — no content to overflow or shift
+          if (char === ' ') {
+            return (
+              <React.Fragment key={index}>
+                {cursorEl}
+                <span className={cn(charClassName, 'inline-block w-[1ch] overflow-hidden')} />
+              </React.Fragment>
+            )
+          }
+
           return (
-            <span key={index} className={className}>
-              {char}
-            </span>
+            <React.Fragment key={index}>
+              {cursorEl}
+              <span className={charClassName}>{char}</span>
+            </React.Fragment>
           )
         })}
-        
-        {/* Show cursor at end if text is empty and idle */}
+
+        {/* Show cursor at start when text is empty and idle */}
         {targetText.length === 0 && showCursor && (
-          <span className="border-l-2 border-primary animate-pulse"> </span>
+          <span
+            className="inline-block w-0.5 bg-primary animate-pulse align-text-bottom"
+            style={{ height: '1.1em' }}
+            aria-hidden="true"
+          />
         )}
       </div>
 
