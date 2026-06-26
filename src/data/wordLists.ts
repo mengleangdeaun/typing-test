@@ -5,7 +5,9 @@ export const WORD_LISTS: Record<Difficulty, string[]> = {
     'cat', 'dog', 'sun', 'run', 'big', 'red', 'hat', 'cup', 'pen', 'map',
     'book', 'fish', 'tree', 'star', 'moon', 'bird', 'frog', 'lion', 'bear', 'wolf',
     'apple', 'happy', 'smile', 'light', 'water', 'house', 'friend', 'love', 'hope', 'peace',
-    'music', 'dance', 'dream', 'heart', 'mind', 'soul', 'beauty', 'grace', 'truth', 'kind'
+    'music', 'dance', 'dream', 'heart', 'mind', 'soul', 'beauty', 'grace', 'truth', 'kind','ethic',
+    'marketing','human','development','management','business','technology','innovation','education','health','finance','law','government',
+    'create', 'communication', 'connection', 'understanding', 'perspective', 'expression','appreciation','transformation','empowerment','mindfulness','integrity','fairness','loyalty', 'honesty', 'respect', 'responsibility', 'dignity', 'tolerance', 'justice','wisdom','accountability','responsibility','courage','tolerance','dignity','compassion','transparency','leadership','humility','empathy','kindness','patience','perseverance','gratitude','optimism','realistic' 
   ],
   intermediate: [
     'beautiful', 'wonderful', 'amazing', 'exciting', 'powerful', 'creative', 'freedom',
@@ -13,7 +15,9 @@ export const WORD_LISTS: Record<Difficulty, string[]> = {
     'community', 'belonging', 'authentic', 'vulnerable', 'resilience', 'curiosity',
     'discovery', 'adventure', 'exploration', 'imagination', 'inspiration',
     'communication', 'connection', 'understanding', 'perspective', 'expression',
-    'appreciation', 'transformation', 'empowerment', 'mindfulness', 'connection'
+    'appreciation', 'transformation', 'empowerment', 'mindfulness', 'connection','integrity', 'fairness', 'ethic',
+    'loyalty', 'honesty', 'respect', 'responsibility', 'dignity', 'tolerance', 'justice','wisdom','accountability','responsibility','courage','tolerance','dignity','compassion',
+    'transparency','leadership','humility','empathy','kindness','patience','perseverance','gratitude','optimism','realistic'
   ],
   advanced: [
     'sophisticated', 'unprecedented', 'extraordinary', 'supercalifragilistic',

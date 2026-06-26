@@ -190,9 +190,188 @@ export const QUOTES: Quote[] = [
     difficulty: 'intermediate',
     tags: ['motivational', 'gandhi', 'change']
   },
+  {
+  id: 'q21',
+  text: 'Not all those who wander are lost',
+  author: 'J. R. R. Tolkien',
+  source: 'The Fellowship of the Ring',
+  length: 32,
+  difficulty: 'beginner',
+  tags: ['literature', 'fantasy', 'tolkien']
+},
+{
+  id: 'q22',
+  text: 'There is nothing either good or bad, but thinking makes it so',
+  author: 'William Shakespeare',
+  source: 'Hamlet',
+  length: 58,
+  difficulty: 'advanced',
+  tags: ['literature', 'philosophy', 'shakespeare']
+},
+{
+  id: 'q23',
+  text: 'The journey of a thousand miles begins with a single step',
+  author: 'Lao Tzu',
+  source: 'Tao Te Ching',
+  length: 56,
+  difficulty: 'intermediate',
+  tags: ['philosophy', 'taoism', 'journey']
+},
+{
+  id: 'q24',
+  text: 'Knowing yourself is the beginning of all wisdom',
+  author: 'Aristotle',
+  source: 'Attributed',
+  length: 41,
+  difficulty: 'beginner',
+  tags: ['philosophy', 'wisdom']
+},
+{
+  id: 'q25',
+  text: 'Well done is better than well said',
+  author: 'Benjamin Franklin',
+  source: 'Poor Richard’s Almanack',
+  length: 34,
+  difficulty: 'beginner',
+  tags: ['motivation', 'action']
+},
+{
+  id: 'q26',
+  text: 'Lost time is never found again',
+  author: 'Benjamin Franklin',
+  source: 'Poor Richard’s Almanack',
+  length: 31,
+  difficulty: 'beginner',
+  tags: ['time', 'productivity']
+},
+{
+  id: 'q27',
+  text: 'The secret of getting ahead is getting started',
+  author: 'Mark Twain',
+  source: 'Attributed',
+  length: 42,
+  difficulty: 'intermediate',
+  tags: ['motivation', 'productivity']
+},
+{
+  id: 'q28',
+  text: 'Do what you can, with what you have, where you are',
+  author: 'Theodore Roosevelt',
+  source: 'Speech',
+  length: 49,
+  difficulty: 'intermediate',
+  tags: ['motivation', 'action']
+},
+{
+  id: 'q29',
+  text: 'In the middle of difficulty lies opportunity',
+  author: 'Albert Einstein',
+  source: 'Attributed',
+  length: 43,
+  difficulty: 'intermediate',
+  tags: ['science', 'opportunity']
+},
+{
+  id: 'q30',
+  text: 'Life is really simple, but we insist on making it complicated',
+  author: 'Confucius',
+  source: 'Analects',
+  length: 58,
+  difficulty: 'advanced',
+  tags: ['philosophy', 'life']
+},
+{
+  id: 'q31',
+  text: 'What you do speaks so loudly that I cannot hear what you say',
+  author: 'Ralph Waldo Emerson',
+  source: 'Essays',
+  length: 59,
+  difficulty: 'advanced',
+  tags: ['leadership', 'character']
+},
+{
+  id: 'q32',
+  text: 'Nothing will work unless you do',
+  author: 'Maya Angelou',
+  source: 'Interview',
+  length: 31,
+  difficulty: 'beginner',
+  tags: ['motivation', 'work']
+},
+{
+  id: 'q33',
+  text: 'Success usually comes to those who are too busy to be looking for it',
+  author: 'Henry David Thoreau',
+  source: 'Attributed',
+  length: 67,
+  difficulty: 'advanced',
+  tags: ['success', 'work']
+},
+{
+  id: 'q34',
+  text: 'The future depends on what you do today',
+  author: 'Mahatma Gandhi',
+  source: 'Attributed',
+  length: 38,
+  difficulty: 'beginner',
+  tags: ['future', 'motivation']
+},
+{
+  id: 'q35',
+  text: 'It always seems impossible until it is done',
+  author: 'Nelson Mandela',
+  source: 'Attributed',
+  length: 42,
+  difficulty: 'intermediate',
+  tags: ['perseverance', 'motivation']
+},
+{
+  id: 'q36',
+  text: 'Dreams do not work unless you do',
+  author: 'John C. Maxwell',
+  source: 'Leadership Gold',
+  length: 30,
+  difficulty: 'beginner',
+  tags: ['work', 'motivation']
+},
+{
+  id: 'q37',
+  text: 'Believe you can and you are halfway there',
+  author: 'Theodore Roosevelt',
+  source: 'Speech',
+  length: 41,
+  difficulty: 'intermediate',
+  tags: ['confidence', 'motivation']
+},
+{
+  id: 'q38',
+  text: 'An investment in knowledge pays the best interest',
+  author: 'Benjamin Franklin',
+  source: 'Poor Richard’s Almanack',
+  length: 49,
+  difficulty: 'intermediate',
+  tags: ['education', 'knowledge']
+},
+{
+  id: 'q39',
+  text: 'No act of kindness, no matter how small, is ever wasted',
+  author: 'Aesop',
+  source: 'Fables',
+  length: 52,
+  difficulty: 'intermediate',
+  tags: ['kindness', 'character']
+},
+{
+  id: 'q40',
+  text: 'The best way to predict the future is to create it',
+  author: 'Peter Drucker',
+  source: 'Attributed',
+  length: 48,
+  difficulty: 'intermediate',
+  tags: ['future', 'innovation']
+},
 
-  // Add more quotes for 100+ total
-  // ... (continuing with more categories)
+
 ]
 
 // Categories

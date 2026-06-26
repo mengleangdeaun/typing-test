@@ -212,7 +212,7 @@ function App() {
               variant={showSettings ? "default" : "outline"} 
               size="sm" 
               onClick={() => setShowSettings(!showSettings)}
-              className="h-8 px-2 sm:px-3 lg:hidden shrink-0"
+              className="h-8 px-2 bg-card sm:px-3 lg:hidden shrink-0"
             >
               <Settings className="h-4 w-4" />
               <span className="hidden sm:inline-block sm:ml-1.5">Settings</span>
@@ -226,7 +226,7 @@ function App() {
         <div className="flex-1 overflow-hidden w-full pt-8 pb-4 flex flex-col lg:flex-row gap-8">
           
           {/* TYPING AREA */}
-          <ScrollArea className="flex-1 min-w-0 pr-4">
+          <ScrollArea className="flex-1 min-w-0 md:pr-4">
             <div className="pb-8">
               {!isFinished && (
                 <div className="mb-6">

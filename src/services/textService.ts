@@ -4,6 +4,18 @@ import { getRandomWords } from '../data/wordLists'
 
 const TEXT_BANK: Record<Exclude<Language, 'custom'>, string[]> = {
   english: [
+    "MISSION, We offer high-quality products and services that solve core infrastructure problems for our customers.",
+    "VISION, To make permanent, compounding positive changes to the lives of the people where we operate our business.",
+    "THE DREAM, A vibrant international enterprise combining exceptional talent across cultures creating infrastructure that permanently elevates human quality of life.",
+    "To attract, develop, and retain talented people who drive our company’s growth and success.",
+    "We serve with care, manage with system, and support with heart.",
+    "To drive business growth through bold creativity, smart digital engagement, and marketing innovation that sets new benchmarks in our industry.",
+    "To be the knowledge hub of the company by deeply understanding every product, educating our customers, and empowering our teams with the right insights to succeed.",
+    "To be the final touchpoint that leaves a lasting impression, ensuring each delivery reflects our dedication to care, quality, and customer satisfaction.",
+    "We listen first, solve fast, and offer products/services that solve clients problems.",
+    "To manage and maintain inventory with accuracy, efficiency, and accountability.",
+    "Our mission is to bring ideas to life with speed, style, and storytelling that inspires.",
+    "To provide a seamless, personalized, and exceptional service experience that reflects the premium quality of our brand and exceeds the expectations of every valued customer.",
     "The quick brown fox jumps over the lazy dog. This sentence contains every letter of the English alphabet, making it a classic for typing practice.",
     "To be, or not to be, that is the question: Whether 'tis nobler in the mind to suffer the slings and arrows of outrageous fortune, or to take arms against a sea of troubles.",
     "All human beings are born free and equal in dignity and rights. They are endowed with reason and conscience and should act towards one another in a spirit of brotherhood.",
@@ -42,6 +54,15 @@ const TEXT_BANK: Record<Exclude<Language, 'custom'>, string[]> = {
 "Customer service is an important part of every successful company. Employees should communicate clearly, solve problems efficiently, and work together as a team. Good communication helps build trust with customers and creates a positive working environment. Every staff member should take responsibility for their tasks, respect company policies, and continuously improve their skills through learning and practice."
   ],
   khmer: [
+    "ផ្នែកធនធានមនុស្ស៖ ដើម្បីទាក់ទាញ អភិវឌ្ឈ និងរក្សាទុកបុគ្គលិកដែលមានសមត្ថភាព ដើម្បីជំរុញភាពរីកចំរើន និងជោគជ័យរបស់ក្រុមហ៊ុន។ ",
+    "ផ្នែករដ្ឋបាល៖ យើងបម្រើដោយការយកចិត្តទុកដាក់ គ្រប់គ្រងដោយប្រព័ន្ធ និងគាំទ្រដោយបេះដូង។",
+    "ផ្នែកទីផ្សារ៖ ដើម្បីជំរុញអាជីវកម្មឲ្យរីកចម្រើន តាមរយៈសិល្បៈនៃការច្នៃប្រឌិតដ៏មានឥទ្ធិពល ជាមួយការចូលរួមក្នុងឌីជីជលដ៏ឆ្លាតវៃ និងការច្នៃប្រឌិតផ្នែកទីផ្សារ ដែលបង្កើតស្តង់ដាថ្មីក្នុងវិស័យការងាររបស់យើង។",
+    "ជាបណ្តុំចំណេះដឹងរបស់ក្រុមហ៊ុន ដោយយល់ដឹងស៊ីជំរៅអំពីផលិតផលទាំងអស់ ផ្តល់កាណែនំាប្រឹក្សាដល់អតិថិជន និងបង្កើនសមត្ថភាពក្រុមការងាររបស់យើងជាមួយនឹងចំណេះដឹងត្រឹមត្រូវដើម្បីទទួលបានជោគជ័យ។",
+    "ដើម្បីជាការបញ្ចប់ការងារ ដែលផ្ដល់អារម្មណ៍ល្អចំពោះអតិថិជន ដោយធានាថាការដឹកជញ្ជូននីមួយៗបង្ហាញពីការយកចិត្តទុកដាក់ ប្រុងប្រយ័ត្នពីគុណភាពលើផលិតផល និងការពេញចិត្តរបស់អតិថិជន។",
+    "យើងស្តាប់ជាមុនសិន បន្ទាប់មកដោះស្រាយយ៉ាងរហ័ស និងផ្ដល់នូវផលិតផល/សេវាកម្មដែលដោះស្រាយបញ្ហារបស់អតិថិជន។",
+    "ដើម្បីគ្រប់គ្រងនិងរក្សាសារពើភ័ណ្ឌ គឺគ្រប់គ្រងយ៉ាងសកម្ម និងទ្រទ្រង់បរិមាណត្រឹមត្រូវនៃស្ដុក(ផលិតផល និងសម្ភារៈ) ជាមួយនឹងភាពត្រឹមត្រូវ ប្រសិទ្ធភាព និង ការទទួលខុសត្រូវ។",
+    "បេសកកម្មរបស់យើងគឺដើម្បីពាំនាំគំនិតឲ្យក្លាយទៅជាការពិត ដោយភាពរហ័ស មានបច្ចេកទេស និងរឿងរ៉ាវដែលបំផុសគំនិតល្អៗ។",
+    "ផ្តល់ជូនបទពិសោធន៍សេវាកម្មដ៏រលូន ភាពផ្ទាល់ខ្លួន និងល្អឥតខ្ចោះដែលឆ្លុះបង្ហាញពីគុណភាពស្តង់ដារកម្រិតខ្ពស់នៃកេរ្តិ៍ឈ្មោះក្រុមហ៊ុនរបស់យើង និងលើសពីការរំពឹងទុករបស់អតិថិជនគ្រប់រូប។",
     "ប្រទេសកម្ពុជាមានប្រវត្តិសាស្ត្រដ៏យូរអង្វែង និងសម្បូរបែបវប្បធម៌។",
     "អង្គរវត្តគឺជាប្រាសាទបុរាណដ៏ល្បីល្បាញនៅកម្ពុជា ដែលទាក់ទាញភ្ញៀវទេសចរមកពីទូទាំងពិភពលោក។",
     "ភាសាខ្មែរជាភាសាផ្លូវការរបស់កម្ពុជា មានអក្ខរក្រមផ្ទាល់ខ្លួនប្លែកពីគេ។",
